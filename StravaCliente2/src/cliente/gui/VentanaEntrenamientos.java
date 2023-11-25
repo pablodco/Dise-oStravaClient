@@ -230,6 +230,7 @@ public class VentanaEntrenamientos extends JFrame {
 		private VentanaEntrenamientos ventanaEntrenamientos;
 
 		public EntrenamientoDTOListRenderer(VentanaEntrenamientos ventanaEntrenamientoes) {
+			
 			this.ventanaEntrenamientos = ventanaEntrenamientoes;
 			setOpaque(true);
 			setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
