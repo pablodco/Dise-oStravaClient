@@ -37,7 +37,7 @@ public class VentanaEntrenamientos extends JFrame {
 	private long token;
 	SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 	EntrenamientoDTOListRenderer renderer;
-
+	@SuppressWarnings({"deprecation" })
 	public VentanaEntrenamientos(long token, StravaController stravaController) {
 		// Configurar la ventana
 		this.stravaController = stravaController;
@@ -156,7 +156,7 @@ public class VentanaEntrenamientos extends JFrame {
 		setLocationRelativeTo(null); // Centrar la ventana en la pantalla
 		setVisible(true);
 	}
-
+	@SuppressWarnings({"deprecation" })
 	private void agregarEntrenamientoDTO(String titulo, String distanciaStr, String duracionStr, String horaInicioStr,
 			String actividad) {
 		try {

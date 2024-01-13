@@ -12,6 +12,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
+import javax.print.DocFlavor.STRING;
 import javax.swing.*;
 import javax.swing.border.Border;
 
@@ -23,7 +24,7 @@ public class VentanaLogin extends JFrame {
     private JPasswordField campoPassword;
     private long token;
     private LoginController loginController;
-    
+    @SuppressWarnings({"deprecation" })
     public VentanaLogin(LoginController loginController,StravaController stravaController) {
         // Configuración de la ventana
         setTitle("Inicio de Sesión");
@@ -44,6 +45,8 @@ public class VentanaLogin extends JFrame {
         panelCabecera.setLayout(new FlowLayout(FlowLayout.CENTER));
         JLabel labelRegistro= new JLabel("No tienes cuenta?");
         JButton botonRegistro = new JButton("Registrarse");
+        String[] metodos= {"GOOGLE","META"};
+        JComboBox<String> metodo= new JComboBox<String>(metodos);
         panelCabecera.setBackground(Color.DARK_GRAY);
         panelCentral.setBackground(Color.DARK_GRAY);
         panelCabecera.add(labelRegistro,BorderLayout.NORTH);
@@ -54,7 +57,8 @@ public class VentanaLogin extends JFrame {
         panelCentral.add(campoEmail);
         panelCentral.add(labelPassword);
         panelCentral.add(campoPassword);
-        panelCentral.add(new JLabel()); // Espacio en blanco
+        panelCentral.add(metodo);
+        panelCentral.add(new JLabel());// Espacio en blanco
         panelCentral.add(botonLogin);
         labelRegistro.setForeground(Color.white);
         labelEmail.setForeground(Color.white);
@@ -77,7 +81,7 @@ public class VentanaLogin extends JFrame {
         botonLogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            	token=loginController.login(campoEmail.getText(), campoPassword.getText());
+            	token=loginController.login(campoEmail.getText(), campoPassword.getText(),(String)metodo.getSelectedItem());
             	VentanaEntrenamientos v= new VentanaEntrenamientos(token,stravaController);
             	v.setVisible(true);
             }
@@ -93,7 +97,7 @@ public class VentanaLogin extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                	loginController.login(campoEmail.getText(), campoPassword.getText());
+                	loginController.login(campoEmail.getText(), campoPassword.getText(),(String)metodo.getSelectedItem());
                 }
             }
 

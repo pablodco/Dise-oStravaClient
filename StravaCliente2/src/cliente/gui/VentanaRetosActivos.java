@@ -41,6 +41,7 @@ public class VentanaRetosActivos extends JFrame {
 
 	public VentanaRetosActivos(long token, StravaController stravaController) {
 		this.stravaController = stravaController;
+		this.token = token;
 		setTitle("RetoDTOs Disponibles");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setSize(800, 400);
@@ -50,22 +51,20 @@ public class VentanaRetosActivos extends JFrame {
 		JPanel tablePanel = new JPanel(new BorderLayout());
 		JPanel panelDetalles = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		JPanel buttonPanel = new JPanel();
-		
-	
 
 		JLabel label = new JLabel("LISTA DE Retos", SwingConstants.CENTER);
 		mainPanel.add(label, BorderLayout.NORTH);
 		// Crear los elementos para incluir datos
-		JLabel labelDescripcion= new JLabel("Descripcion");
-		tfDescripcion=new JTextField(300);
-		JLabel labelNombre= new JLabel("Nombre");
-		tfNombre= new JTextField();
-		JLabel labelObjetivo= new JLabel("Objetivo");
-		tfObjetivo= new JTextField();
-		JLabel labelFechaInicio= new JLabel("Fecha de inicio (dd/MM/yyyy):");
-		tfFechaInicio= new JTextField();
-		JLabel labelFechaFin= new JLabel("Fecha de finalizacion:");
-		tfFechaInicio= new JTextField();
+		JLabel labelDescripcion = new JLabel("Descripcion");
+		tfDescripcion = new JTextField(300);
+		JLabel labelNombre = new JLabel("Nombre");
+		tfNombre = new JTextField();
+		JLabel labelObjetivo = new JLabel("Objetivo");
+		tfObjetivo = new JTextField();
+		JLabel labelFechaInicio = new JLabel("Fecha de inicio (dd/MM/yyyy):");
+		tfFechaInicio = new JTextField();
+		JLabel labelFechaFin = new JLabel("Fecha de finalizacion:");
+		tfFechaInicio = new JTextField();
 		// Crear el modelo de la tabla
 		DefaultTableModel model = new DefaultTableModel();
 		model.addColumn("Nombre");
@@ -74,6 +73,8 @@ public class VentanaRetosActivos extends JFrame {
 		model.addColumn("Objetivo");
 		model.addColumn("Descripcion");
 		model.addColumn("Actividades");
+		model.addColumn("Tipo de Reto");
+		model.addColumn("Progreso");
 
 		menuBar = new JMenuBar();
 		// Crear elementos del menú
@@ -108,21 +109,21 @@ public class VentanaRetosActivos extends JFrame {
 		List<RetoDTO> retosActivos = stravaController.obtenerRetosActivos(token);
 		for (RetoDTO reto : retosActivos) {
 			agregarRetoDTOATabla(model, reto);
-			System.out.println(reto.getFecha_fin() + reto.getFecha_ini());
 		}
 		// Crear la tabla con el modelo
 		table = new JTable(model);
 
 		// Personalizar el renderer para cambiar el color de la fila seleccionada
 		CustomTableCellRenderer2 renderer = new CustomTableCellRenderer2();
-		
+		ProgressBarRenderer rendererbarra = new ProgressBarRenderer();
 		// Aplicar el renderer a todas las columnas de la tabla
-		for (int i = 0; i < table.getColumnCount(); i++) {
+		for (int i = 0; i < table.getColumnCount() - 1; i++) {
 			table.getColumnModel().getColumn(i).setCellRenderer(renderer);
 		}
+		table.getColumnModel().getColumn(7).setCellRenderer(rendererbarra);
 		table.getTableHeader().setBackground(Color.DARK_GRAY);
-		table.getTableHeader().setForeground(Color.WHITE);		
-		table.setSelectionBackground(new Color(0,200,170));
+		table.getTableHeader().setForeground(Color.WHITE);
+		table.setSelectionBackground(new Color(0, 200, 170));
 		// Añadir la tabla a un JScrollPane
 		JScrollPane scrollPane = new JScrollPane(table);
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
@@ -135,14 +136,13 @@ public class VentanaRetosActivos extends JFrame {
 				if (!e.getValueIsAdjusting() && table.getSelectedRow() != -1) {
 					obtenerRetoDTOSeleccionado();
 				} else {
-					boton.setEnabled(false);
+
 				}
 			}
 		});
-		
 		// Agregar paneles al panel principal
 		mainPanel.add(tablePanel, BorderLayout.CENTER);
-		mainPanel.add(panelDetalles,BorderLayout.NORTH);
+		mainPanel.add(panelDetalles, BorderLayout.NORTH);
 
 		// Agregar el panel principal a la ventana
 		getContentPane().add(mainPanel);
@@ -150,11 +150,15 @@ public class VentanaRetosActivos extends JFrame {
 
 	// Método para agregar un RetoDTO al modelo de la tabla
 	private void agregarRetoDTOATabla(DefaultTableModel model, RetoDTO RetoDTO) {
-
-		model.addRow(new Object[] { RetoDTO.getNombre(), RetoDTO.getFecha_ini(), RetoDTO.getFecha_fin(),
-				RetoDTO.getObjetivo(), RetoDTO.getDescripcion(), RetoDTO.getActividades() });
+		JProgressBar barraProgreso = new JProgressBar(0, 100);
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		barraProgreso.setVisible(true);
+		barraProgreso.setValue((int) stravaController.obtenerPorcentajeDeReto(RetoDTO, token));
+		model.addRow(new Object[] { RetoDTO.getNombre(), dateFormat.format(RetoDTO.getFecha_ini()), dateFormat.format(RetoDTO.getFecha_fin()),
+				RetoDTO.getObjetivo(), RetoDTO.getDescripcion(), RetoDTO.getActividades(), RetoDTO.getTipoObjectivo(),
+				(int)stravaController.obtenerPorcentajeDeReto(RetoDTO, token)});
 		stravaController.crearReto(token, RetoDTO.getObjetivo(), RetoDTO.getDescripcion(), RetoDTO.getNombre(),
-				RetoDTO.getFecha_ini(), RetoDTO.getFecha_fin(), RetoDTO.getActividades());
+				RetoDTO.getFecha_ini(), RetoDTO.getFecha_fin(), RetoDTO.getActividades(), RetoDTO.getTipoObjectivo());
 	}
 
 	private RetoDTO obtenerRetoDTOSeleccionado() {
@@ -167,11 +171,13 @@ public class VentanaRetosActivos extends JFrame {
 			int objetivo = (int) model.getValueAt(filaSeleccionada, 3);
 			String descripcion = (String) model.getValueAt(filaSeleccionada, 4);
 			String actividades = ((String) model.getValueAt(filaSeleccionada, 5));
-			return new RetoDTO(objetivo, descripcion, nombre, actividades, fechaIniStr, fechaFinStr);
+			String tipo = ((String) model.getValueAt(filaSeleccionada, 6));
+			return new RetoDTO(objetivo, descripcion, nombre, actividades, this.parseFecha(fechaIniStr), this.parseFecha(fechaFinStr), tipo);
 		} else {
 			return null;
 		}
 	}
+
 	// Método para convertir una cadena de fecha a un objeto Date
 	private Date parseFecha(String fechaStr) {
 		try {
@@ -185,7 +191,7 @@ public class VentanaRetosActivos extends JFrame {
 }
 
 class CustomTableCellRenderer2 extends JLabel implements TableCellRenderer {
-	private static final long SerialVersionUID = 1l;
+	private static final long serialVersionUID = 1l;
 
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 			int row, int column) {
@@ -204,5 +210,24 @@ class CustomTableCellRenderer2 extends JLabel implements TableCellRenderer {
 		}
 
 		return this;
+	}
+}
+
+class ProgressBarRenderer extends DefaultTableCellRenderer {
+	private static final long serialVersionUID = 1l;
+	private JProgressBar progressBar = new JProgressBar(0, 100);
+
+	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+			int row, int column) {
+		// Convierte el valor de la celda a un porcentaje para el progreso de la barra.
+		int progress = (int) value;
+		progressBar.setValue(progress);
+		JLabel valor= new JLabel(Integer.toString(progress));
+		progressBar.add(valor);
+		valor.setVisible(true);
+		valor.setForeground(Color.BLACK);
+		progressBar.setForeground(new Color(60,200,255));
+		progressBar.setBackground(new Color(255,255,255));
+		return progressBar;
 	}
 }

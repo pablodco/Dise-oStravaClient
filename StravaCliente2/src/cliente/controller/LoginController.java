@@ -13,9 +13,9 @@ public class LoginController {
 		this.serviceLocator = serviceLocator;
 	}
 
-	public long login(String email, String password) {
+	public long login(String email, String password,String metodo) {
 		try {
-			this.token = this.serviceLocator.getService().login(email, password);
+			this.token = this.serviceLocator.getService().login(email, password,metodo);
 			return token;
 		} catch (RemoteException e) {
 			System.out.println("# Error during login: " + e);
@@ -25,10 +25,10 @@ public class LoginController {
 	}
 
 	public long registro(String email, String password, String nombre, String fecha_nac, int peso_kilo, int altura,
-			int frecuencia_card, int frecuencia_card_max) {
+			int frecuencia_card, int frecuencia_card_max,String metodo) {
 		try {
 			this.token = this.serviceLocator.getService().registro(email, password, nombre, fecha_nac, peso_kilo,
-					altura, frecuencia_card, frecuencia_card_max);
+					altura, frecuencia_card, frecuencia_card_max,metodo);
 			return token;
 		} catch (RemoteException e) {
 			System.out.println("# Error during login: " + e);

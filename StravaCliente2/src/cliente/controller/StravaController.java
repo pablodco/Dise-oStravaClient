@@ -62,9 +62,9 @@ public class StravaController {
 	}
 	
 	public boolean crearReto(long token,int objetivo, String descripcion, String nombre,
-			String fecha_ini, String fecha_fin,String actividades) {
+			Date fecha_ini, Date fecha_fin,String actividades,String tipo) {
 		try {
-			return this.serviceLocator.getService().crearReto(token,objetivo,descripcion,nombre,fecha_ini, fecha_fin,actividades);
+			return this.serviceLocator.getService().crearReto(token,objetivo,descripcion,nombre,fecha_ini, fecha_fin,actividades,tipo);
 		} catch (RemoteException e) {
 			System.out.println("# Error making a bid: " + e);
 			return false;
@@ -76,6 +76,15 @@ public class StravaController {
 		} catch (RemoteException e) {
 			System.out.println("# Error making a bid: " + e);
 			return null;
+		}
+	}
+	
+	public double obtenerPorcentajeDeReto(RetoDTO reto,long token) {
+		try {
+			return this.serviceLocator.getService().obtenerPorcentajeDeReto(reto,token);
+		}catch (RemoteException e) {
+			e.printStackTrace();
+			return 0;
 		}
 	}
 	

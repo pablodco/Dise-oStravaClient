@@ -5,13 +5,19 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
@@ -23,10 +29,13 @@ import javax.swing.table.TableModel;
 import cliente.controller.StravaController;
 import servidor.dto.RetoDTO;
 
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 public class VentanaRetosDisponibles extends JFrame {
+	private static final long serialVersionUID = 1l;
 	private JButton boton;
 	private JTable table;
 	private JMenuBar menuBar;
@@ -37,35 +46,63 @@ public class VentanaRetosDisponibles extends JFrame {
 	private JTextField tfDescripcion;
 	private JTextField tfFechaInicio;
 	private JTextField tfFechaFin;
+	private JComboBox<String> actividades;
+	private JComboBox<String> tipo;
 	private long token;
 
 	public VentanaRetosDisponibles(long token, StravaController stravaController) {
 		this.stravaController = stravaController;
 		setTitle("RetoDTOs Disponibles");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setSize(800, 400);
+		setSize(800, 600);
 
 		// Crear paneles
 		JPanel mainPanel = new JPanel(new BorderLayout());
 		JPanel tablePanel = new JPanel(new BorderLayout());
-		JPanel panelDetalles = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		JPanel panelDetalles = new JPanel(new GridLayout(8, 2));
 		JPanel buttonPanel = new JPanel();
-		
-	
 
 		JLabel label = new JLabel("LISTA DE Retos", SwingConstants.CENTER);
 		mainPanel.add(label, BorderLayout.NORTH);
 		// Crear los elementos para incluir datos
-		JLabel labelDescripcion= new JLabel("Descripcion");
-		tfDescripcion=new JTextField(300);
-		JLabel labelNombre= new JLabel("Nombre");
-		tfNombre= new JTextField();
-		JLabel labelObjetivo= new JLabel("Objetivo");
-		tfObjetivo= new JTextField();
-		JLabel labelFechaInicio= new JLabel("Fecha de inicio (dd/MM/yyyy):");
-		tfFechaInicio= new JTextField();
-		JLabel labelFechaFin= new JLabel("Fecha de finalizacion:");
-		tfFechaInicio= new JTextField();
+		JLabel labelDescripcion = new JLabel("Descripcion");
+		tfDescripcion = new JTextField(300);
+		JLabel labelNombre = new JLabel("Nombre");
+		tfNombre = new JTextField();
+		JLabel labelObjetivo = new JLabel("Objetivo");
+		tfObjetivo = new JTextField();
+		JLabel labelFechaInicio = new JLabel("Fecha de inicio (dd/MM/yyyy):");
+		tfFechaInicio = new JTextField("dd/MM/yyyy");
+		JLabel labelFechaFin = new JLabel("Fecha de finalizacion:");
+		tfFechaFin = new JTextField("dd/MM/yyyy");
+		JButton botonReto = new JButton("Crear Reto");
+		botonReto.setEnabled(false);
+		tfObjetivo.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+				// TODO Auto-generated method stub
+				if (e.getKeyChar() >= '0' && e.getKeyChar() <= '9') {
+					tfObjetivo.setText(tfObjetivo.getText() + e.getKeyChar());
+					e.consume();
+				} else {
+					e.consume();
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+
 		// Crear el modelo de la tabla
 		DefaultTableModel model = new DefaultTableModel();
 		model.addColumn("Nombre");
@@ -74,6 +111,7 @@ public class VentanaRetosDisponibles extends JFrame {
 		model.addColumn("Objetivo");
 		model.addColumn("Descripcion");
 		model.addColumn("Actividades");
+		model.addColumn("Tipo de Reto");
 
 		menuBar = new JMenuBar();
 		// Crear elementos del menú
@@ -108,7 +146,6 @@ public class VentanaRetosDisponibles extends JFrame {
 		List<RetoDTO> retosDisponibles = stravaController.obtenerRetosDisponibles(token);
 		for (RetoDTO reto : retosDisponibles) {
 			agregarRetoDTOATabla(model, reto);
-			System.out.println(reto.getFecha_fin() + reto.getFecha_ini());
 		}
 		// Crear la tabla con el modelo
 		table = new JTable(model);
@@ -121,8 +158,8 @@ public class VentanaRetosDisponibles extends JFrame {
 			table.getColumnModel().getColumn(i).setCellRenderer(renderer);
 		}
 		table.getTableHeader().setBackground(Color.DARK_GRAY);
-		table.getTableHeader().setForeground(Color.WHITE);		
-		table.setSelectionBackground(new Color(200,200,25));
+		table.getTableHeader().setForeground(Color.WHITE);
+		table.setSelectionBackground(new Color(200, 200, 25));
 		// Añadir la tabla a un JScrollPane
 		JScrollPane scrollPane = new JScrollPane(table);
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
@@ -151,6 +188,23 @@ public class VentanaRetosDisponibles extends JFrame {
 
 			}
 		});
+		botonReto.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				try {
+					DateFormat dt = new SimpleDateFormat("dd/MM/yyyy");
+					agregarRetoDTOATabla(model, new RetoDTO (Integer.parseInt(tfObjetivo.getText()),tfDescripcion.getText(),
+							 tfNombre.getText(),(String)actividades.getSelectedItem(),dt.parse(tfFechaInicio.getText()),dt.parse(tfFechaFin.getText()),(String)tipo.getSelectedItem()));
+//					 stravaController.crearReto(token,Integer.parseInt(tfObjetivo.getText()),tfDescripcion.getText(),
+//					 tfNombre.getText(), dt.parse(tfFechaInicio.getText()),
+//					 dt.parse(tfFechaFin.getText()),(String)actividades.getSelectedItem(),(String)tipo.getSelectedItem());
+				} catch (ParseException ex) {
+					ex.printStackTrace();
+				}
+			}
+		});
+
 		buttonPanel.add(boton);
 		ListSelectionModel selectionModel = table.getSelectionModel();
 		selectionModel.addListSelectionListener(new ListSelectionListener() {
@@ -163,9 +217,34 @@ public class VentanaRetosDisponibles extends JFrame {
 				}
 			}
 		});
+		String[] actividad = { "running", "ciclismo", "running,ciclismo" };
+		String[] tipos = { "DISTANCIA","TIEMPO" };
+		actividades = new JComboBox<String>(actividad);
+		tipo = new JComboBox<String>(tipos);
+		panelDetalles.add(labelNombre);
+		panelDetalles.add(tfNombre);
+		panelDetalles.add(labelObjetivo);
+		panelDetalles.add(tfObjetivo);
+		panelDetalles.add(labelDescripcion);
+		panelDetalles.add(tfDescripcion);
+		panelDetalles.add(labelFechaInicio);
+		panelDetalles.add(tfFechaInicio);
+		panelDetalles.add(labelFechaFin);
+		panelDetalles.add(tfFechaFin);
+		panelDetalles.add(actividades);
+		panelDetalles.add(tipo);
+		panelDetalles.add(botonReto);
+		if (tfNombre.getText() != "" && tfDescripcion.getText() != "" && tfObjetivo.getText() != ""
+				&& tfFechaInicio.getText() != "" && tfFechaFin.getText() != "") {
+			botonReto.setEnabled(true);
+		} else {
+			botonReto.setEnabled(false);
+		}
 		// Agregar paneles al panel principal
-		mainPanel.add(tablePanel, BorderLayout.CENTER);
-		mainPanel.add(panelDetalles,BorderLayout.NORTH);
+		JPanel panelPrincipal = new JPanel(new BorderLayout());
+		panelPrincipal.add(panelDetalles, BorderLayout.NORTH);
+		panelPrincipal.add(tablePanel, BorderLayout.CENTER);
+		mainPanel.add(panelPrincipal, BorderLayout.CENTER);
 		mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
 		// Agregar el panel principal a la ventana
@@ -174,11 +253,13 @@ public class VentanaRetosDisponibles extends JFrame {
 
 	// Método para agregar un RetoDTO al modelo de la tabla
 	private void agregarRetoDTOATabla(DefaultTableModel model, RetoDTO RetoDTO) {
-
-		model.addRow(new Object[] { RetoDTO.getNombre(), RetoDTO.getFecha_ini(), RetoDTO.getFecha_fin(),
-				RetoDTO.getObjetivo(), RetoDTO.getDescripcion(), RetoDTO.getActividades() });
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		model.addRow(new Object[] { RetoDTO.getNombre(), dateFormat.format(RetoDTO.getFecha_ini()),dateFormat.format(RetoDTO.getFecha_fin()),
+				RetoDTO.getObjetivo(), RetoDTO.getDescripcion(), RetoDTO.getActividades(),
+				RetoDTO.getTipoObjectivo() });
 		stravaController.crearReto(token, RetoDTO.getObjetivo(), RetoDTO.getDescripcion(), RetoDTO.getNombre(),
-				RetoDTO.getFecha_ini(), RetoDTO.getFecha_fin(), RetoDTO.getActividades());
+				RetoDTO.getFecha_ini(), RetoDTO.getFecha_fin(), RetoDTO.getActividades(),
+				RetoDTO.getTipoObjectivo().toString());
 	}
 
 	private RetoDTO obtenerRetoDTOSeleccionado() {
@@ -191,11 +272,13 @@ public class VentanaRetosDisponibles extends JFrame {
 			int objetivo = (int) model.getValueAt(filaSeleccionada, 3);
 			String descripcion = (String) model.getValueAt(filaSeleccionada, 4);
 			String actividades = ((String) model.getValueAt(filaSeleccionada, 5));
-			return new RetoDTO(objetivo, descripcion, nombre, actividades, fechaIniStr, fechaFinStr);
+			String tipoObjetivo = ((String) model.getValueAt(filaSeleccionada, 6));
+			return new RetoDTO(objetivo, descripcion, nombre, actividades, this.parseFecha(fechaIniStr), this.parseFecha(fechaFinStr), tipoObjetivo);
 		} else {
 			return null;
 		}
 	}
+
 	// Método para convertir una cadena de fecha a un objeto Date
 	private Date parseFecha(String fechaStr) {
 		try {
@@ -209,7 +292,7 @@ public class VentanaRetosDisponibles extends JFrame {
 }
 
 class CustomTableCellRenderer extends JLabel implements TableCellRenderer {
-	private static final long SerialVersionUID = 1l;
+	private static final long serialVersionUID = 1l;
 
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 			int row, int column) {

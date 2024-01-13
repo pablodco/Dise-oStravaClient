@@ -26,11 +26,12 @@ public class VentanaRegistro extends JFrame {
 	private JTextField campoAltura;
 	private JTextField campoFrecCardMax;
 	private JTextField campoFrecCardRep;
-	private long token =-1;
-	private DateFormat dt= new SimpleDateFormat("yyyy/mm/dd");
+	JComboBox<String> metodo;
+	private long token = -1;
+	private DateFormat dt = new SimpleDateFormat("yyyy/mm/dd");
 
-	public VentanaRegistro(LoginController loginController,StravaController stravaController) {
-		this.loginController= loginController;
+	public VentanaRegistro(LoginController loginController, StravaController stravaController) {
+		this.loginController = loginController;
 		// Configuración de la ventana
 		setTitle("Registro de Usuario");
 		setSize(500, 300);
@@ -40,30 +41,32 @@ public class VentanaRegistro extends JFrame {
 		// Creación de componentes
 		JLabel labelNombre = new JLabel("Nombre:");
 		JLabel labelEmail = new JLabel("Email:");
-		JLabel labelPassword= new JLabel("Password:");
+		JLabel labelPassword = new JLabel("Password:");
 		JLabel labelFechaNac = new JLabel("Fecha de Nacimiento (YYYY/MM/DD):");
 		JLabel labelPesoKilo = new JLabel("Peso (kg):");
 		JLabel labelAltura = new JLabel("Altura (cm):");
 		JLabel labelFrecCardMax = new JLabel("Frecuencia Cardíaca Máxima:");
 		JLabel labelFrecCardRep = new JLabel("Frecuencia Cardíaca en Reposo:");
-		JPanel panelNombre =new JPanel();
+		JPanel panelNombre = new JPanel();
 		panelNombre.setLayout(new FlowLayout(FlowLayout.CENTER));
-		JPanel panelEmail =new JPanel();
+		JPanel panelEmail = new JPanel();
 		panelEmail.setLayout(new FlowLayout(FlowLayout.CENTER));
-		JPanel panelPassword =new JPanel();
+		JPanel panelPassword = new JPanel();
 		panelPassword.setLayout(new FlowLayout(FlowLayout.CENTER));
-		JPanel panelFechaNac =new JPanel();
+		JPanel panelFechaNac = new JPanel();
 		panelFechaNac.setLayout(new FlowLayout(FlowLayout.CENTER));
-		JPanel panelPesoKilo =new JPanel();
+		JPanel panelPesoKilo = new JPanel();
 		panelPesoKilo.setLayout(new FlowLayout(FlowLayout.CENTER));
-		JPanel panelAltura =new JPanel();
+		JPanel panelAltura = new JPanel();
 		panelAltura.setLayout(new FlowLayout(FlowLayout.CENTER));
-		JPanel panelFrecCardRep =new JPanel();
+		JPanel panelFrecCardRep = new JPanel();
 		panelFrecCardRep.setLayout(new FlowLayout(FlowLayout.CENTER));
-		JPanel panelFrecCardMax=new JPanel();
-		panelFrecCardMax.setLayout(new BoxLayout(panelFrecCardMax,BoxLayout.X_AXIS));
+		JPanel panelFrecCardMax = new JPanel();
+		panelFrecCardMax.setLayout(new BoxLayout(panelFrecCardMax, BoxLayout.X_AXIS));
+		String[] metodos = { "GOOGLE", "META" };
+		metodo = new JComboBox<String>(metodos);
 		campoNombre = new JTextField(20);
-		campoPassword= new JPasswordField(20);
+		campoPassword = new JPasswordField(20);
 		campoEmail = new JTextField(20);
 		campoFechaNac = new JTextField(20);
 		campoPesoKilo = new JTextField(20);
@@ -74,8 +77,8 @@ public class VentanaRegistro extends JFrame {
 		JButton botonRegistrar = new JButton("Registrar");
 
 		// Configuración del diseño
-		setLayout(new BoxLayout(this.getContentPane(),BoxLayout.Y_AXIS));
-	
+		setLayout(new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS));
+
 		// Agregar componentes a la ventana
 		panelNombre.add(labelNombre);
 		panelNombre.add(campoNombre);
@@ -103,12 +106,13 @@ public class VentanaRegistro extends JFrame {
 		add(panelFrecCardRep);
 		add(panelFrecCardMax);
 		add(botonRegistrar);
+		add(metodo);
 		// Configurar el ActionListener para el botón de registro
 		botonRegistrar.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				realizarRegistro();
-				VentanaEntrenamientos v= new VentanaEntrenamientos(token,stravaController);
+				VentanaEntrenamientos v = new VentanaEntrenamientos(token, stravaController);
 				v.setVisible(true);
 				v.setEnabled(true);
 			}
@@ -135,17 +139,20 @@ public class VentanaRegistro extends JFrame {
 		});
 	}
 
+	@SuppressWarnings({ "deprecation" })
 	private void realizarRegistro() {
 		// Obtener el contenido de los campos de texto
 		String nombre = campoNombre.getText();
 		String email = campoEmail.getText();
+
 		String password = campoPassword.getText();
 		String fechaNacStr = campoFechaNac.getText();
 		int pesoKilo = Integer.parseInt(campoPesoKilo.getText());
 		int altura = Integer.parseInt(campoAltura.getText());
 		int frecCardMax = Integer.parseInt(campoFrecCardMax.getText());
 		int frecCardRep = Integer.parseInt(campoFrecCardRep.getText());
-		token=loginController.registro(email,password,nombre,fechaNacStr,pesoKilo,altura,frecCardRep,frecCardMax);
+		token = loginController.registro(email, password, nombre, fechaNacStr, pesoKilo, altura, frecCardRep,
+				frecCardMax,(String)metodo.getSelectedItem());
 	}
 
 }
